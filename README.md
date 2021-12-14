@@ -1,7 +1,16 @@
 # Projects-Year-3-University
-UPB: ACS - CTI courses and Homework (2021-2022)
+- UPB: ACS - CTI courses and Homework (2021-2022)
+- Warning: license on repository!!
 
-# Courses:
+## Features
+- License: MIT (vioo-bkp, Contact: viorelm41@gmail.com)
+- Language: C/C++, Java, Python, etc
+- Platform: Linux, Windows
+- Compiler: GCC, Clang, javac
+- IDE: VSCode, InteliJ, Sublime Text
+- Build: Makefile
+
+### Courses:
 - First Semester:
 
 Local Area Networks - Retele Locale
