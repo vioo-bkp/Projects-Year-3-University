@@ -1,0 +1,70 @@
+Nume: Mateescu Viorel-Cristian
+Grupa: 332CB
+
+Cateva detalii legate de implementare:
+    - Am urmat pasii din cerinta temei si totul a mers ok, nu am intampinat bug-uri sau alte probleme.
+
+    - Pentru a imparti a task-uri worker-ilor, intr-un mod cat mai echilibrat am ales sa folosesc modelul Replicated
+    Workers. Astfel, am folosit ExecutorService pentru a permite executarea de task-uri asincrone, in background, in
+    mod concurent. In etapa de Map, cat si in cea de Reduce am noThreads workeri care executa Task-uri de tip Map,
+    respectiv Reduce create de catre Thread-ul coordonator Main din Pool-ul de Task-uri. Deci impartirea Task-urilor
+    la Workeri se face in mod automat, nefiind nevoie sa ma ocup in mod specific de ea.
+
+    - Pentru a astepta ca toate Task-urile de Map sa se termine inainte de a porni Task-urile de Reduce am folosit
+    metoda awaitTermination() a ExecutorService-ului cu o durata de timp destul de mare, analog cu Task-urile de Reduce
+    si afisarea rezultatelor.
+
+    - Pentru citirea unui anumit numar de caractere de la un anumit offset dintr-un fisier am ales sa folosesc clasa
+    RandomAccessFile (foarte utila si pentru ca are implementata metoda size() care determina numarul de caractere
+    dintr-un fisier). Astfel pentru citirea din fisier pozitionez cursorul la offset in acesta si citesc fragmentSize
+    bytes (1 char are 1 byte, asa ca pot converti usor la sir de caractere sirul de bytes).
+
+    - Initial foloseam tipul List<CopyOnWriteArrayList<Map<Integer, Integer>>> pentru a stoca rezultatele etapei de Map
+    care nu prea era readable, asa ca mi-am creat clasa DocumentMap pentru a stoca rezultatele pentru un document si am
+    folosit List<DocumentMap> pentru a stoca rezultatele pentru toate documentele. Analog am procedat si pentru
+    rezultale etapei de Reduce.
+
+    - Pentru a accesa rezultatele etapei de Map mai eficient am decis ca in structura DocumentMap sa am o lista de
+    mapari lungimeCuvant - numarCuvinteCuLungimeaRespectiva pentru fiecare fragment al documentului, respectiv una de
+    cuvinte de lungime maxima. Iar pentru rezultatele etapei de Reduce am ales sa folosesc un Map(numeDocument,
+    rezultateReduce).
+
+    - Am observat ca ar fi mai util sa calculez o singura data tot sirul Fibonacci pana la al
+    (max_word_length_in_document + 1) termen si sa salvez toti termenii calculati pentru obtinerea acestuia intr-un
+    array. Astfel atunci cand calculez rangul unui document nu mai trebuie sa recalculez fiecare termen din sirul lui
+    Fibonacci de care am nevoie, avandu-i deja accesibili.
+
+    - Pentru sortarea rezultatelor algoritmului Map-Reduce imi creez un Entry Set pe care il sortez descrescator in
+    functie de rank-ul fiecarui document (iar in caz de rank-uri egale dupa ordinea din fisierul de input a
+    documentelor respective).
+
+    - In final am incercat sa modularize cat am putut de mult codul impartindu-l in metode si facand diferite
+    optimizari.
+
+Implementare:
+    - In Tema2 verific daca programul a fost rulat corect, parsez numarul de workeri, dimensiunea fragmentului si
+    numarul de documente. Tot aici initializez Executor Service-ul si incep sa creez Task-urile etapei de Map prin
+    impartirea fisierului in documentSize/fragmentSize fragmente de dimensiune fragmentSize si eventual un fragment
+    final de dimensiune mai mica decat fragmentSize. Astept sa se execute acestea si creez Task-urile etapei de Reduce
+    (noDocuments = noReduceTasks) care au ca input rezultatele pentru cate un document ale etapei anterioare. Dupa ce
+    se termina Task-urile de Reduce, sortez rezultatele acestora in functei de Rank-ul fiecarui document (iar daca sunt
+    egale in functie de ordinea acestora in fisierul de input) si afisez rezultatele in formatul dorit.
+
+    - DocumentMap si MapReduceResult sunt clase folosite pentru a stoca rezultatele etapei de Map, respectiv Result a
+    fiecarui document.
+
+    - In MapRunnable deschid fisierul si citesc fragmentSize bytes/caractere din acesta. Verific daca fragmentul incepe
+    cu sfarsitul unui cuvant si il elimin in acest caz (de asemena ajustez offset si fragmentSize). Dupa aceea verific
+    daca fragmentul se termina cu un cuvant incomplet si adaug restul cuvantului in acest caz (ajustand si
+    fragmentSize). Apoi impart fragmentul in cuvinte si parcurgandu-le generez dictionarul de lungimi de cuvinte, lista
+    de cuvinte de lungime maxima si lungimea maxima a unui cuvant din fragmentul respectiv, pe care le adaug in listele
+    de informatii ale documentului respectiv.
+
+    - In ReduceRunnable combin dictionarele de lungimi de cuvinte ale fragmentelor documentului respectiv astfel:
+        - imi generez un set complet de chei care contine toate cheile din toate dictionarele;
+        - pentru fiecare cheie fac suma valorilor pentru cheia respectiva din fiecare dictionar si o adaug in
+        dictionarul combinat la cheia respectiva.
+    Concatenez listele de cuvinte maxime ale fragmentelor documentului si pastrez din lista rezultata doar cuvintele de
+    lungime maxima (un fel de maxim global al maximurilor locale). Calculez sirul lui Fibonacci pana la al
+    (maxLength + 1)-lea termen. Iterez prin dictionarul de lungimi e cuvinte si calculez rangul documentului folosind
+    formula din cerinta temei, apoi adaug rezultatul in Map-ul de rezultate al etapei de Reduce.

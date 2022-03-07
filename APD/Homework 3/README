@@ -1,0 +1,56 @@
+Nume: Mateescu Viorel-Cristian
+Grupa: 332CB
+
+Cateva detalii legate de implementare:
+    - Am refolosit functia de citire din fisier din laboratorul 10 si am adaptat-o pentru citirea configuratiei
+    fiecarui Cluster de catre procesul Master al acestuia.
+
+    - Pentru comunicarea intre procesele Master mi-am definit un grup format din acestea, subgrup al grupului tuturor
+    proceselor, si am instantiat si un comunicator special pentru procesele Master. Astfel, am reusit sa dau
+    broadcast-uri doar intre cele trei procese Master.
+
+    - Pentru impartirea array-ului de task-uri echitabil intre procesele Master, respectiv intre procsele Worker ale
+    unui Master am folosit formula de impartire a unui array intre thread-uri din primul laborator de pthreads,
+    respectiv: int start = ID * (double)N / P;
+               int end = min((ID + 1) * (double)N / P, N);
+    si am adaptat-o pentru fiecare caz, astfel:
+
+        1. Pentru impartirea echitabila a task-urilor intre procesele Master avand in vedere numarul de Workeri din
+        fiecare Cluster:
+            ID = rank - Numarul proceselor Master -> astfel, asignez un ID fiecarui proces Worker in
+                                                     intervalul [0, Nr procese - 3), 3 = nr de procese Master
+            N = numarul de task-uri de rezolvat
+            P = Nr procese - Nr proceselor Master = Nr procese - 3 -> numarul proceselor care vor rezolva task-uri
+
+        Fiecare Master va primi astfel end - start task-uri pentru fiecare proces al sau pe care le imparti ulterior
+        catre acestea.
+
+        2. Pentru impartirea echitabila a task-urilor intre procesele Worker din Cluster:
+            ID = i, i E [0, Nr procese in clusterul curent) -> astfel, asignez un ID fiecarui proces Worker din Cluster
+            N = numarul de task-uri de rezolvat de catre Cluster-ul curent
+            P = Nr Workeri in Clusterul curent
+
+        Fiecare Worker va primi astfel un numar aproximativ egal de task-uri de rezolvat.
+
+    - Pentru a realiza scatter-ul/gather-ul array-ului de task-uri intre procesele Master, respectiv intre procesele
+    Worker dintr-un Cluster mi-am definit propriile metode si am folosit logica prezentat mai sus in acestea realizand
+    trimiterea/primirea de mesaje cu functiile MPI_Send si MPI_Recv.
+
+    - In final am incercat sa modularize cat am putut de mult codul impartindu-l in metode si facand diferite
+    optimizari.
+
+Stabilirea Topologiei:
+    Procesele Master isi citesc topologia cluster-ului din fisier si isi anunta Workerii de faptul ca ele sunt
+    coordonatorii acestora. Apoi procesele Master dau broadcast-uri intre ele cu topologia cluster-ului pe care il
+    coordoneaza. Astfel ele au acum topologia completa, pe care o trimit Workerilor si pe care o vor afisa toate
+    procesele.
+
+Realizarea Calculelor:
+    Procesul 0 genereaza un vector v de dimensiune N, unde v[i] = i. Apoi imparte aceste task-uri echitabil fiecarui
+    Cluster avand in vedere numarul de Workeri din fiecare Cluster dupa cum am explicat anterior. Mai departe,
+    procesul Master al fiecarui Cluster imparte task-urile asignate de catre procesul 0 Cluster-ului respectiv in mod
+    echitabil folosind logica prezentata anterior. Procesele Worker primesc task-urile de rezolvat de la Masterii lor,
+    le rezolva si le trimit inapoi acestora. Masterii aduna task-urile rezolvate in ordine de la Workeri si le trimite,
+    dupa ce le-a adunat pe toate, procesului 0. Acesta aduna si el task-urile rezolvate de catre procesele sale Worker,
+    cat si pe cele rezolvate de catre celelalte Clustere de la Masterii acestora. In final, procesul 0 afiseaza
+    vectorul rezultat.
