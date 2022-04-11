@@ -1,0 +1,6 @@
+./tema2.c:137: ERROR:SPACING: space required before the open parenthesis '('
+00) Sources check...........................................failed  [ 0/95]
+01) Test fopen arguments....................................passed  [02/95]
+02) Test fgetc..............................................passed  [02/95]
+03) Test fgetc large file...................................failed  [ 0/95]
+04) Test fread small file...................................passed  [02/95]
