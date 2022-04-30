@@ -18,7 +18,8 @@ static so_exec_t *exec;
 static int exec_descriptor;
 static int size_page;
 
-static struct so_seg *search_for_segment(uintptr_t address) {
+static struct so_seg *search_for_segment(uintptr_t address)
+{
 	struct so_seg *seg = NULL;
 	int i = 0;
 
@@ -37,7 +38,8 @@ static struct so_seg *search_for_segment(uintptr_t address) {
 	return seg;
 }
 
-static void sigsegv_check(int signum, siginfo_t *siginfo, void *sigtext) {
+static void sigsegv_check(int signum, siginfo_t *siginfo, void *sigtext)
+{
 	// define variables for the pagefault handler
 	struct so_seg *seg = search_for_segment((uintptr_t)siginfo->si_addr);
 	struct sigaction handler;
@@ -66,13 +68,14 @@ static void sigsegv_check(int signum, siginfo_t *siginfo, void *sigtext) {
 		}
 	}
 	// use mmap to map the page
-	char *mapp =
+	volatile char *mapp =
 			mmap((void *)vaddress + num_page * size_page, size_page, seg->perm,
 					 flag, exec_descriptor, seg->offset + num_page * size_page);
 
 	if (check_map != 0) {
 		// use memset to fill the page with 0
 		uintptr_t diff = vaddress + num_page * size_page + (size_page - check_map);
+
 		memset((char *)diff, 0, check_map);
 	} else {
 		// set page as mapped and set the data to 1
@@ -80,9 +83,10 @@ static void sigsegv_check(int signum, siginfo_t *siginfo, void *sigtext) {
 	}
 }
 
-int so_init_loader(void) {
-	// get the page size
+int so_init_loader(void)
+{
 	struct sigaction handler;
+	// get the page size
 	size_page = getpagesize();
 	// open the executable file
 	handler.sa_sigaction = sigsegv_check;
@@ -97,7 +101,8 @@ int so_init_loader(void) {
 	return -1;
 }
 
-int so_execute(char *path, char *argv[]) {
+int so_execute(char *path, char *argv[])
+{
 	// open the file
 	exec_descriptor = open(path, O_RDONLY);
 	exec = so_parse_exec(path);
