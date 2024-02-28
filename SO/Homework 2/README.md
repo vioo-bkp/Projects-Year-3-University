@@ -1,67 +1,60 @@
-== Sisteme de Operare ==
-Tema 2 - Bibilioteca stdio
+# Operating Systems - Homework 2: stdio Library
 
-Nume: Mateescu Viorel-Cristian
-Grupa: 332CB
+# Author
+- Name: Mateescu Viorel-Cristian
+- Group: 332CB
 
-Implementare:
+## Implementation
 
-so_fopen:
-	Deschide fisierul aflat la pathname, folosind permisiunile de deschidere mode.
-	Aceasta aloca o structura pe care o intoarce.
-	Cand fisierul este deschis, pozitia cursorului este setata la inceputul fisierului.
+### so_fopen
+- Opens a file using the specified `mode` permissions.
+- Returns an allocated structure representing the opened file.
+- Sets the cursor position to the beginning of the file.
 
-so_fclose:
-	Inchide fisierul primit ca parametru si elibereaza memoria din structura alocata.
+### so_fclose
+- Closes the file passed as a parameter and frees the memory allocated for the associated structure.
 
-so_popen:
-	Deschide un proces alocat din structura.
-	Creeaza un proces cu comanda primita ca parametru.
-	In cazul in care comanda nu este valida, se intoarce NULL.
-	Procesul copil redirectioneaza la stdin (daca avem write) si stdout (daca avem read)
-	corespunzator file_descriptor si executa comanda primita.
-	Procesul parinte creeaza o structura asociata procesului copil si o returneaza.
+### so_popen
+- Opens an allocated process from a structure.
+- Creates a process with the command passed as a parameter.
+- If the command is not valid, returns NULL.
+- The child process redirects stdin (if we have write) and stdout (if we have read) to the corresponding file_descriptor and executes the given command.
+- The parent process creates a structure associated with the child process and returns it.
 
-so_fileno:
-	Returneaza descriptorul de fisier al streamului.
+### so_fileno
+- Returns the file descriptor of the stream.
 
-so_fflush:
-	Daca bufferul nu este gol, se scrie continutul bufferului in fisierul cu descriptorul file_d,
-	iar pozitia bufferului este setata pe 0.
-	Se returneaza 0 in caz de succes, -1 in caz de eroare.
+### so_fflush
+- If the buffer is not empty, writes the contents of the buffer to the file with descriptor `file_d`, and sets the buffer position to 0.
+- Returns 0 on success, -1 on error.
 
-so_ftell:
-	Returneaza pozitia curenta a streamului.
+### so_ftell
+- Returns the current position of the stream.
 
-so_ferror:
-	Returneaza 0 daca nu s-a produs nici o eroare, altfel returneaza 1.
+### so_ferror
+- Returns 0 if no error occurred, otherwise returns 1.
 
-so_fgetc:
-	Returneaza caracterul de pe pozitia curenta a streamului,
-	iar pozitia streamului este incrementata cu +1.
-	Sterge datele in cazul unei scrieri anterioare, si stabileste READ ca ultima operatie.
+### so_fgetc
+- Returns the character at the current position of the stream and advances the position by +1.
+- Clears the data in case of a previous write and sets the operation as read.
 
-so_fputc:
-	Returneaza caracterul de pe pozitia curenta a streamului,
-	iar pozitia streamului este incrementata cu +1.
-	Sterge datele in cazul unei scrieri anterioare, si stabileste WRITE ca ultima operatie.
-	Apelul de scriere este efectuat in cazul unui buffer gol.
+### so_fputc
+- Writes the character at the current position of the stream and advances the position by +1.
+- Clears the data in case of a previous write and sets the operation as write.
+- Performs the write in case of an empty buffer.
 
-so_feof:
-	Returneaza 0 daca nu s-a ajuns la finalul fisierului, altfel returneaza 1.
+### so_feof
+- Returns 0 if the end of the file has not been reached, otherwise returns 1.
 
-so_fseek:
-	Muta cursorul de pe pozitia specificata. Face flush pe buffer daca au fost efectuate scrieri,
-	si resetaza indexul la buffer in cazul unui citiri.
-	Mutarea pozitiei cursorului poate fi fata de inceputul fisierului sau de sfarsitul fisierului, prin lseek.
+### so_fseek
+- Moves the cursor to the specified position.
+- Flushes the buffer if writes have been performed and resets the buffer index in case of reads.
+- The cursor position can be relative to the beginning or end of the file, using lseek.
 
-so_fwrite:
-	bytes_to_write - numarul de bytes ce trebuie scrisi in fisier.
-	bytes_written - numarul de bytes scrisi in fisier.
-	While loop folosit pentru scrierea de bytes.
-	Resetam indexul bufferului in cazul unui citiri.
-	Copiem bytes in buffer cu memcpy. Setam sfarsitul bufferului ca fiind numarul de bytes copiati.
-	Incrementam bytes_written cu numarul de bytes copiati si returnam bytes_written.
+### so_fwrite
+- Writes a specified number of bytes to the file.
+- Returns the number of bytes actually written.
 
-so_fread:
-	Idem ca so_fwrite, dar invers.
+### so_fread
+- Reads a specified number of bytes from the file.
+- Returns the number of bytes actually read.
